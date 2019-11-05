@@ -1,0 +1,8 @@
+---
+- request:
+    method: PATCH
+    url: "/foo/bar?baz=42"
+    body: Hello world
+  response:
+    code: 200
+    body: Bye world
