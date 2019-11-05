@@ -55,19 +55,19 @@ type Response struct {
 func RunFromYAML(t tt, h http.Handler, path string) {
 	f, err := os.Open(path)
 	if err != nil {
-		t.Fatalf("os: Open: %w", err)
+		t.Fatalf("os: Open: %s", err)
 		return
 	}
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		t.Fatalf("io/ioutil: ReadAll: %w", err)
+		t.Fatalf("io/ioutil: ReadAll: %s", err)
 		return
 	}
 
 	var tcs []TestCase
 	if err := yaml.Unmarshal(b, &tcs); err != nil {
-		t.Fatalf("yaml: Unmarshal: %w", err)
+		t.Fatalf("yaml: Unmarshal: %s", err)
 		return
 	}
 
