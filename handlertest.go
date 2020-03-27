@@ -106,7 +106,6 @@ func Run(t tt, h http.Handler, tcs ...TestCase) {
 }
 
 func httpRequest(req *Request) *http.Request {
-	// @todo.
 	var body io.Reader
 	if req.Body != "" {
 		body = strings.NewReader(req.Body)
