@@ -55,7 +55,6 @@ It's even easier to do this with some straightforward YAML. Here's an example wi
     method: "GET"
     url: "/health"
   response:
-    code: 200
     body: "ok"
 - name: "Health returns bad method on POST"
   request:

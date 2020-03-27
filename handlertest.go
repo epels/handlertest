@@ -123,16 +123,18 @@ func httpRequest(req *Request) *http.Request {
 }
 
 func assertResponse(t tt, rec *httptest.ResponseRecorder, res *Response) {
-	// If any of the fields in res have their types' zero value, we assume it's
-	// not been set and should not be tested against.
-	if isNotZero(res.Code) && rec.Code != res.Code {
-		t.Errorf("Got response code %d, expected %d", rec.Code, res.Code)
+	expCode := res.Code
+	if isZero(expCode) {
+		expCode = http.StatusOK
 	}
-	if s := rec.Body.String(); isNotZero(res.Body) && s != res.Body {
+	if rec.Code != expCode {
+		t.Errorf("Got response code %d, expected %d", rec.Code, expCode)
+	}
+	if s := rec.Body.String(); !isZero(res.Body) && s != res.Body {
 		t.Errorf("Got response body %q, expected %q", s, res.Body)
 	}
 }
 
-func isNotZero(i interface{}) bool {
-	return !reflect.ValueOf(i).IsZero()
+func isZero(i interface{}) bool {
+	return reflect.ValueOf(i).IsZero()
 }
