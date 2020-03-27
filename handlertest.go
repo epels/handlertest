@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -113,10 +114,14 @@ func httpRequest(req *Request) *http.Request {
 func assertResponse(t tt, rec *httptest.ResponseRecorder, res *Response) {
 	// If any of the fields in res have their types' zero value, we assume it's
 	// not been set and should not be tested against.
-	if res.Code != 0 && rec.Code != res.Code {
+	if isNotZero(res.Code) && rec.Code != res.Code {
 		t.Errorf("Got response code %d, expected %d", rec.Code, res.Code)
 	}
-	if s := rec.Body.String(); res.Body != "" && s != res.Body {
+	if s := rec.Body.String(); isNotZero(res.Body) && s != res.Body {
 		t.Errorf("Got response body %q, expected %q", s, res.Body)
 	}
+}
+
+func isNotZero(i interface{}) bool {
+	return !reflect.ValueOf(i).IsZero()
 }
