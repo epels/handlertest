@@ -3,6 +3,7 @@
 package handlertest
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -34,9 +35,10 @@ type TestCase struct {
 
 // Request describes the request to fire at the HTTP handler.
 type Request struct {
-	Method string
-	URL    string
-	Body   string
+	Method  string
+	URL     string
+	Body    string
+	Headers []string
 }
 
 // Response describes the expected response from the HTTP handler. All fields
@@ -104,11 +106,21 @@ func Run(t tt, h http.Handler, tcs ...TestCase) {
 }
 
 func httpRequest(req *Request) *http.Request {
+	// @todo.
 	var body io.Reader
 	if req.Body != "" {
 		body = strings.NewReader(req.Body)
 	}
-	return httptest.NewRequest(req.Method, req.URL, body)
+	httpreq := httptest.NewRequest(req.Method, req.URL, body)
+	for _, h := range req.Headers {
+		split := strings.SplitN(h, ": ", 2)
+		if len(split) != 2 {
+			_, _ = fmt.Fprintf(os.Stderr, "Header %q has invalid format (expected `Key: Value`)", h)
+			os.Exit(1)
+		}
+		httpreq.Header.Set(split[0], split[1])
+	}
+	return httpreq
 }
 
 func assertResponse(t tt, rec *httptest.ResponseRecorder, res *Response) {

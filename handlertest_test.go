@@ -104,6 +104,10 @@ func TestRun(t *testing.T) {
 	t.Run("Single passing test", func(t *testing.T) {
 		var m mock
 		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if ah := r.Header.Get("Authorization"); ah != "Basic Zm9vOmJhcg==" {
+				t.Errorf("Got %q, expected Zm9vOmJhcg==", ah)
+			}
+
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte("Bad")); err != nil {
 				t.Logf("%T: Write: %s", w, err)
@@ -112,8 +116,9 @@ func TestRun(t *testing.T) {
 
 		Run(&m, h, TestCase{
 			Request: Request{
-				Method: http.MethodGet,
-				URL:    "/foo",
+				Method:  http.MethodGet,
+				URL:     "/foo",
+				Headers: []string{"Authorization: Basic Zm9vOmJhcg=="},
 			},
 			Response: Response{
 				Code: http.StatusBadRequest,
@@ -170,14 +175,16 @@ func TestHTTPRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "GET with query",
+			name: "GET with headers and query",
 			in: &Request{
-				Method: http.MethodGet,
-				URL:    "https://emilepels.nl/foo?bar=baz&num=42",
+				Method:  http.MethodGet,
+				URL:     "https://emilepels.nl/foo?bar=baz&num=42",
+				Headers: []string{"Authorization: Basic Zm9vOmJhcg=="},
 			},
 			expect: &http.Request{
 				Method: http.MethodGet,
 				URL:    mustParseURL(t, "https://emilepels.nl/foo?bar=baz&num=42"),
+				Header: map[string][]string{"Authorization": {"Basic Zm9vOmJhcg=="}},
 			},
 		},
 		{
@@ -219,6 +226,24 @@ func TestHTTPRequest(t *testing.T) {
 			gotBody, expBody := readAll(t, got.Body), readAll(t, tc.expect.Body)
 			if gotBody != expBody {
 				t.Errorf("Got %q, expected %q", gotBody, expBody)
+			}
+			if len(got.Header) != len(tc.expect.Header) {
+				t.Fatalf("Got %d, expected %d", len(got.Header), len(tc.expect.Header))
+			}
+			for k, ev := range tc.expect.Header {
+				gv, ok := got.Header[k]
+				if !ok {
+					t.Errorf("Missing header for key %q", k)
+					continue
+				}
+				if len(gv) != 1 {
+					t.Errorf("Got %d, expected 1", len(gv))
+					continue
+				}
+				if gv[0] != ev[0] {
+					t.Errorf("Got %q, expected %q", gv[0], ev[0])
+					continue
+				}
 			}
 		})
 	}
