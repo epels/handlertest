@@ -58,8 +58,15 @@ func RunFromYAML(t tt, h http.Handler, path string) {
 		t.Fatalf("os: Open: %s", err)
 		return
 	}
+	defer func() {
+		_ = f.Close()
+	}()
 
-	b, err := ioutil.ReadAll(f)
+	runFromYAML(t, h, f)
+}
+
+func runFromYAML(t tt, h http.Handler, r io.Reader) {
+	b, err := ioutil.ReadAll(r)
 	if err != nil {
 		t.Fatalf("io/ioutil: ReadAll: %s", err)
 		return
